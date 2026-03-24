@@ -1,8 +1,6 @@
-# %% [markdown]
-# # <span style="color:#f4a6a6;">**Preparation des données avant l'entrainement des modèles**</span>
+# Preparation des données avant l'entrainement des modèles
 
-# %%
-# importation des libraries 
+# importation des libraries :
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -10,8 +8,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-# %% [markdown]
-# ## **Objectifs :**
+
+# Objectifs :
 # 
 # - Normaliser les noms de colonnes
 # - Séparer la colonne cible des features
@@ -20,7 +18,6 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 # - Utiliser un préprocesseur pour mettre les données à la bonne forme
 # - Divise les données en 80% train / 20% test en conservant l'équilibre des classes
 
-# %%
 def prepare_data(df: pd.DataFrame, target_col: str = 'legendary'):
 
     df.columns = df.columns.str.lower().str.replace(' ', '_') #mettre les noms de colonnes en minuscules et remplacer les espaces par des underscores
@@ -31,7 +28,7 @@ def prepare_data(df: pd.DataFrame, target_col: str = 'legendary'):
     y = df[target_col] #colonne cible
     X = df.drop(columns=[target_col] + COLS_TO_DROP)#features
 
-#prétraitement des données numériques et catégorielles
+# prétraitement des données numériques et catégorielles
     cat_cols = X.select_dtypes(include='object').columns 
     num_cols = X.select_dtypes(include=['int64', 'float64']).columns
 
@@ -39,28 +36,7 @@ def prepare_data(df: pd.DataFrame, target_col: str = 'legendary'):
         ('num', StandardScaler(), num_cols),           
         ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols)])
 
-#séparation des données en train et test
+# séparation des données en train et test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
     return X_train, X_test, y_train, y_test, preprocessor
-
-
-# %% [markdown]
-# Test de la fonction sur un modele
-
-# %%
-df_clean = pd.read_csv("../../data/processed/pokemon_clean.csv")
-X_train, X_test, y_train, y_test, preprocessor = prepare_data(df_clean)
-
-# %%
-from sklearn.dummy import DummyClassifier
-from sklearn.metrics import classification_report
-
-pipeline = make_pipeline(preprocessor, DummyClassifier(strategy='most_frequent'))
-pipeline.fit(X_train, y_train)
-
-y_pred = pipeline.predict(X_test)
-print(classification_report(y_test, y_pred, target_names=['Normal', 'Légendaire']))
-
-
-
